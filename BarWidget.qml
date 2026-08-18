@@ -358,7 +358,8 @@ BarWidget {
     if (peekToplevel && !peekProcess.running && peekVisible
         && (!isManaged(peekToplevel) || !isPeeked(peekToplevel))) {
       peekVisible = false
-      runPeekToggle("external-toggle")
+      if (isMinimized(peekToplevel)) finishPeekExit("hide")
+      else runPeekToggle("external-toggle")
     } else if (peekToplevel && !isManaged(peekToplevel) && !peekProcess.running) {
       clearPeekState()
     }
@@ -409,7 +410,7 @@ BarWidget {
       fixedHeight: root.barSize
       dimmed: !root.canMinimize
       interactive: root.canMinimize
-      tooltipText: root.canMinimize ? "Minimize active window (Super+M)" : "No active window to minimize"
+      tooltipText: root.canMinimize ? "Minimize active window" : "No active window to minimize"
       onPressed: function(button) {
         if (button === Qt.LeftButton) root.minimizeActive()
       }
@@ -483,7 +484,7 @@ BarWidget {
         fixedHeight: root.barSize
         clip: true
         tooltipText: String(modelData.title || "Window")
-          + (root.isPeeked(modelData) ? " - click to restore, right-click to close Peek"
+          + (root.isPeeked(modelData) ? " - click to restore, right-click or Super+M to close Peek"
             : " - click to restore, right-click to Peek")
         onTooltipHoveredChanged: {
           if (tooltipHovered && root.isMinimized(modelData)) root.requestPreview(chip, modelData)
