@@ -9,7 +9,9 @@ where windows are moved.
 - `BarWidget.qml`: complete runtime behavior and bar UI
 - `manifest.json`: Omarchy plugin identity and marketplace metadata
 - `README.md`: installation, behavior, recovery, privacy, and development docs
-- `preview.png` (when added): root marketplace preview captured from the real widget
+- `preview.png`: root marketplace preview of centered interactive Peek
+- `assets/interactive-peek.png`: README screenshot of the real Peek surface
+- `assets/hover-preview.png`: README screenshot of the live hover thumbnail
 - `deploy-local.sh`: development-only deployment helper
 - `mise.toml`: local restart and validation tasks
 
@@ -66,7 +68,8 @@ after publication.
 - Open previews after a short delay so crossing the bar does not create popup
   churn. Closing a preview must stop its live capture immediately.
 - Right-click toggles interactive Peek. Left-click always restores permanently,
-  including while Peek is open. A normal workspace change dismisses Peek.
+  including while Peek is open. `SUPER + M` from the Peek client and a normal
+  workspace change both dismiss Peek and must restore prior layout state.
 - Keep all user-visible strings and source files ASCII unless an existing file
   requires otherwise.
 
@@ -112,8 +115,8 @@ source of truth; do not develop in the installed plugin directory.
   features, and major for incompatible behavior.
 - Keep the workspace name, optional binding, install URL, recovery command,
   privacy statement, and runtime behavior synchronized with `BarWidget.qml`.
-- Add and confirm `preview.png` before marketplace submission; it is not required
-  during the initial local MVP scaffold.
+- Confirm `preview.png`, `assets/interactive-peek.png`, and
+  `assets/hover-preview.png` still match the released behavior.
 - Confirm the public default branch contains the final commit before marketplace
   submission; validation inspects the current public commit.
 - Recommended marketplace category: `Compositor`.
