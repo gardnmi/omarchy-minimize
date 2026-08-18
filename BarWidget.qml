@@ -36,7 +36,7 @@ BarWidget {
   property int peekOriginalFullscreen: 0
   property var peekOriginalSize: null
   property var peekOriginalPosition: null
-  property bool peekHideAlready: false
+  readonly property bool peekTransitionRunning: peekProcess.running || peekVisibilityProcess.running
 
   implicitWidth: layout.implicitWidth
   implicitHeight: layout.implicitHeight
@@ -121,7 +121,7 @@ BarWidget {
       ? workspace.name : peekOriginWorkspace
     if (!destination) return
     if (peekToplevel === toplevel || isPeeked(toplevel)) {
-      if (peekProcess.running) return
+      if (peekTransitionRunning) return
       peekVisible = false
       runPeekCommand(["hyprctl", "dispatch", moveRequest(toplevel, destination, true)], "restore-move")
     } else {
@@ -130,7 +130,7 @@ BarWidget {
   }
 
   function runPeekCommand(command, action) {
-    if (peekProcess.running || !command || command.length === 0) return false
+    if (peekTransitionRunning || !command || command.length === 0) return false
     peekProcess.action = action
     peekProcess.command = command
     peekProcess.running = true
@@ -138,7 +138,7 @@ BarWidget {
   }
 
   function togglePeek(toplevel) {
-    if (!toplevel || peekProcess.running) return
+    if (!toplevel || peekTransitionRunning) return
     cancelPreview(toplevel)
     if (peekToplevel === toplevel || isPeeked(toplevel)) {
       closePeek(toplevel)
@@ -163,11 +163,10 @@ BarWidget {
     runPeekCommand(["hyprctl", "dispatch", moveRequest(toplevel, peekWorkspace, false)], "show-move")
   }
 
-  function closePeek(toplevel, alreadyHidden) {
+  function closePeek(toplevel) {
     var target = toplevel || peekToplevel
-    if (!target || peekProcess.running) return
+    if (!target || peekTransitionRunning) return
     peekVisible = false
-    peekHideAlready = alreadyHidden === true
     runPeekCommand(["hyprctl", "dispatch", moveRequest(target, shelfWorkspace, false)], "hide-move")
   }
 
@@ -179,12 +178,36 @@ BarWidget {
     peekOriginalFullscreen = 0
     peekOriginalSize = null
     peekOriginalPosition = null
-    peekHideAlready = false
   }
 
   function runPeekToggle(action) {
     runPeekCommand(["hyprctl", "dispatch",
       "hl.dsp.workspace.toggle_special(\"omarchy-window-peek\")"], action)
+  }
+
+  function runPeekVisibilityCheck(kind) {
+    if (peekTransitionRunning) return false
+    peekVisibilityProcess.kind = kind
+    peekVisibilityProcess.running = true
+    return true
+  }
+
+  function peekWorkspaceIsVisible(raw) {
+    try {
+      var monitors = JSON.parse(String(raw || ""))
+      for (var i = 0; i < monitors.length; i++) {
+        var special = monitors[i] ? monitors[i].specialWorkspace : null
+        if (special && special.name === peekWorkspace) return true
+      }
+    } catch (exception) {
+      console.warn("window-shelf: could not inspect Peek workspace visibility", exception)
+    }
+    return false
+  }
+
+  function finishPeekVisibilityCheck(kind, exitCode, output) {
+    if (exitCode === 0 && peekWorkspaceIsVisible(output)) runPeekToggle(kind + "-toggle")
+    else finalizePeek()
   }
 
   function finalizePeek() {
@@ -200,10 +223,8 @@ BarWidget {
     if (peekOriginalFullscreen > 0) {
       runPeekCommand(["hyprctl", "dispatch",
         windowFullscreenRequest(peekToplevel, peekOriginalFullscreen)], kind + "-fullscreen")
-    } else if (kind === "hide" && peekHideAlready) {
-      finalizePeek()
     } else {
-      runPeekToggle(kind + "-toggle")
+      runPeekVisibilityCheck(kind)
     }
   }
 
@@ -280,10 +301,7 @@ BarWidget {
       Qt.callLater(function() { root.completePeekExit(stateKind) })
     } else if (action === "hide-fullscreen" || action === "restore-fullscreen") {
       var fullscreenKind = action.indexOf("hide-") === 0 ? "hide" : "restore"
-      Qt.callLater(function() {
-        if (fullscreenKind === "hide" && root.peekHideAlready) root.finalizePeek()
-        else root.runPeekToggle(fullscreenKind + "-toggle")
-      })
+      Qt.callLater(function() { root.runPeekVisibilityCheck(fullscreenKind) })
     } else if (action === "hide-toggle" || action === "restore-toggle") {
       finalizePeek()
     } else if (action === "external-toggle") {
@@ -292,9 +310,9 @@ BarWidget {
   }
 
   function handleFocusedWorkspaceChanged() {
-    if (!peekToplevel || !peekVisible || peekProcess.running) return
+    if (!peekToplevel || !peekVisible || peekTransitionRunning) return
     var workspace = Hyprland.focusedWorkspace
-    if (workspace && workspace.name !== peekWorkspace) closePeek(peekToplevel, true)
+    if (workspace && workspace.name !== peekWorkspace) closePeek(peekToplevel)
   }
 
   function windowTitle(toplevel) {
@@ -355,12 +373,12 @@ BarWidget {
 
   onMinimizedWindowsChanged: {
     if (previewToplevel && !isManaged(previewToplevel)) cancelPreview(previewToplevel)
-    if (peekToplevel && !peekProcess.running && peekVisible
+    if (peekToplevel && !peekTransitionRunning && peekVisible
         && (!isManaged(peekToplevel) || !isPeeked(peekToplevel))) {
       peekVisible = false
       if (isMinimized(peekToplevel)) finishPeekExit("hide")
-      else runPeekToggle("external-toggle")
-    } else if (peekToplevel && !isManaged(peekToplevel) && !peekProcess.running) {
+      else runPeekVisibilityCheck("external")
+    } else if (peekToplevel && !isManaged(peekToplevel) && !peekTransitionRunning) {
       clearPeekState()
     }
   }
@@ -377,6 +395,21 @@ BarWidget {
       var completedAction = action
       action = ""
       root.finishPeekCommand(completedAction, exitCode)
+    }
+  }
+
+  Process {
+    id: peekVisibilityProcess
+    property string kind: ""
+    command: ["hyprctl", "-j", "monitors"]
+    stdout: StdioCollector {
+      id: peekVisibilityOutput
+      waitForEnd: true
+    }
+    onExited: function(exitCode) {
+      var completedKind = kind
+      kind = ""
+      root.finishPeekVisibilityCheck(completedKind, exitCode, peekVisibilityOutput.text)
     }
   }
 
