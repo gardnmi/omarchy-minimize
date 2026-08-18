@@ -1,4 +1,4 @@
-# Omarchy Window Shelf Development Guide
+# Omarchy Minimize Development Guide
 
 This repository is an Omarchy Quattro bar plugin that simulates window
 minimization on Hyprland. Keep changes small, event-driven, and explicit about

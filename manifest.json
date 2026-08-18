@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "id": "io.github.gardnmi.window-shelf",
-  "name": "Window Shelf",
-  "version": "0.3.2",
+  "name": "Minimize",
+  "version": "0.3.3",
   "author": "Mike Gardner",
   "license": "MIT",
   "description": "Minimize Hyprland windows into Omarchy bar chips with icons, live previews, and interactive Peek.",
@@ -12,7 +12,7 @@
     "barWidget": "BarWidget.qml"
   },
   "barWidget": {
-    "displayName": "Window Shelf",
+    "displayName": "Minimize",
     "description": "Minimize windows, preview them on hover, interact through Peek, and restore them.",
     "category": "Compositor",
     "aliases": ["minimize", "windows", "shelf", "taskbar"],
