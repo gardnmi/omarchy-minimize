@@ -14,6 +14,7 @@ restore the correct client.
 - Adds a mouse-accessible minimize button to the Omarchy bar
 - Shows every minimized window as an individual application icon and title chip
 - Displays a live, non-interactive window preview after hovering a chip briefly
+- Opens the real window as a centered, interactive Peek on right-click
 - Restores a window onto the currently focused workspace
 - Tracks windows reactively through Quickshell without polling
 - Reconstructs its state after shell restarts from the Hyprland workspace
@@ -50,10 +51,19 @@ omarchy plugin enable io.github.gardnmi.window-shelf --section left
 | Left click the minimize glyph | Minimize the active window |
 | Left click a title chip | Restore that window on the current workspace |
 | Hover a title chip | Show a live preview and the complete window title |
+| Right-click a title chip | Open or close a centered, interactive Peek |
 
 The window list is global. On a multi-monitor setup, every live bar instance
 reflects windows parked on the shelf, and restoring uses the workspace focused
 at the time of the click.
+
+Interactive Peek temporarily moves one exact client onto
+`special:omarchy-window-peek`, floats it at the configured size, and centers it
+over the current workspace. It is the real application window, so pointer and
+keyboard input work normally after you click it. Right-click its chip again or
+switch normal workspaces to return it to the shelf. Left-click the chip while
+Peek is open to restore it permanently. Tiled windows return to tiled state;
+previously floating windows recover their prior size and position.
 
 ### Optional Keyboard Shortcut
 
@@ -78,14 +88,17 @@ hyprctl configerrors
 
 Title chips default to 18 characters. Set `maxTitleLength` on the bar entry to
 change the limit. `maxChipWidth` controls the rendered chip width and
-`previewDelay` controls the hover delay in milliseconds:
+`previewDelay` controls the hover delay in milliseconds. `peekWidth` and
+`peekHeight` control the centered interactive window size:
 
 ```json
 {
   "id": "io.github.gardnmi.window-shelf",
   "maxTitleLength": 24,
   "maxChipWidth": 220,
-  "previewDelay": 350
+  "previewDelay": 350,
+  "peekWidth": 960,
+  "peekHeight": 640
 }
 ```
 
@@ -123,7 +136,9 @@ Move or close those windows normally before hiding the special workspace again.
 - While a chip is hovered, Quickshell requests a local live compositor export
   of that exact window to render its preview. The frame remains in the shell
   process and is discarded when the preview closes.
-- Minimizing and restoring issue only local Hyprland Lua dispatchers.
+- Minimizing, restoring, and interactive Peek issue only local Hyprland Lua
+  dispatchers. Peek temporarily changes the exact client's workspace, floating
+  state, size, and position, then restores its prior layout state when closed.
 - Desktop-entry metadata and icons are resolved from the local application
   database and icon theme.
 - The plugin does not save screenshots, access application files, use the

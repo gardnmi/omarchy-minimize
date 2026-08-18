@@ -30,6 +30,11 @@ after publication.
   fallback when no reliable match exists.
 - Hover previews use `ScreencopyView` with the exact toplevel as their capture
   source. They must not move, focus, or activate the window.
+- Interactive Peek may move only one exact client at a time onto
+  `special:omarchy-window-peek`. It floats, sizes, and centers the real client,
+  then returns it to the shelf or restores it permanently.
+- Preserve whether the client was tiled or floating before Peek. Previously
+  floating clients also recover their prior size and position.
 
 ## Safety Invariants
 
@@ -38,6 +43,11 @@ after publication.
 - Do not move a client when its address or destination workspace is missing.
 - Do not close windows, synthesize input, save window frames, or expose preview
   content outside the transient in-process hover popup.
+- Serialize every Peek move, float, resize, center, and special-workspace toggle.
+  Never leave an empty Peek workspace visible after a normal close or restore.
+- Omarchy hides special workspaces during normal workspace changes. That path
+  must return the Peek client to the shelf without toggling the already-hidden
+  workspace back open.
 - Do not modify Hyprland or Omarchy user configuration from plugin code. The
   optional `SUPER + M` binding belongs in documentation and user config.
 - Removing the plugin can leave applications parked. Keep the recovery command
@@ -55,6 +65,8 @@ after publication.
   only when an application icon cannot be resolved.
 - Open previews after a short delay so crossing the bar does not create popup
   churn. Closing a preview must stop its live capture immediately.
+- Right-click toggles interactive Peek. Left-click always restores permanently,
+  including while Peek is open. A normal workspace change dismisses Peek.
 - Keep all user-visible strings and source files ASCII unless an existing file
   requires otherwise.
 

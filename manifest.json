@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "io.github.gardnmi.window-shelf",
   "name": "Window Shelf",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Mike Gardner",
   "license": "MIT",
-  "description": "Minimize Hyprland windows into clickable Omarchy bar chips with application icons and live previews.",
+  "description": "Minimize Hyprland windows into Omarchy bar chips with icons, live previews, and interactive Peek.",
   "kinds": ["bar-widget"],
   "activation": "on-demand",
   "entryPoints": {
@@ -13,7 +13,7 @@
   },
   "barWidget": {
     "displayName": "Window Shelf",
-    "description": "Minimize windows, preview them on hover, and restore them on the current workspace.",
+    "description": "Minimize windows, preview them on hover, interact through Peek, and restore them.",
     "category": "Compositor",
     "aliases": ["minimize", "windows", "shelf", "taskbar"],
     "allowMultiple": false,
