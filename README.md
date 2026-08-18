@@ -1,15 +1,15 @@
-# Window Shelf for Omarchy
+# Omarchy Minimize
 
 Minimize Hyprland windows into compact, clickable title chips in the Omarchy
 bar. Clicking a chip restores that exact window onto the workspace you are
 currently viewing.
 
-Hyprland does not provide conventional desktop minimization. Window Shelf
+Hyprland does not provide conventional desktop minimization. Omarchy Minimize
 implements the behavior by parking windows on the private
 `special:omarchy-minimized` workspace and using Hyprland's window addresses to
 restore the correct client.
 
-![Window Shelf centered interactive Peek](assets/interactive-peek.png)
+![Omarchy Minimize centered interactive Peek](assets/interactive-peek.png)
 
 ## Features
 
@@ -74,8 +74,8 @@ hyprctl configerrors
 ```
 
 If `SUPER + M` is already assigned, choose another unused key instead of
-silently replacing its existing action. Installing Window Shelf never modifies
-Hyprland bindings automatically.
+silently replacing its existing action. Installing Omarchy Minimize never
+modifies Hyprland bindings automatically.
 
 ## Use
 
@@ -87,7 +87,7 @@ Hyprland bindings automatically.
 | Right-click a title chip | Open or close a centered, interactive Peek |
 | `SUPER + M` from Peek | Return the window to the shelf and restore its layout state |
 
-![Window Shelf live hover preview](assets/hover-preview.png)
+![Omarchy Minimize live hover preview](assets/hover-preview.png)
 
 The window list is global. On a multi-monitor setup, every live bar instance
 reflects windows parked on the shelf, and restoring uses the workspace focused
@@ -185,7 +185,7 @@ hyprctl dispatch 'hl.dsp.workspace.toggle_special("omarchy-minimized")'
 ```
 
 If the window appears there, move it to a normal workspace or restore it after
-reenabling Window Shelf.
+reenabling Omarchy Minimize.
 
 ### The keyboard shortcut does nothing
 
@@ -219,4 +219,4 @@ git diff --check
 
 ## License
 
-Window Shelf is licensed under the [MIT License](LICENSE).
+Omarchy Minimize is licensed under the [MIT License](LICENSE).
