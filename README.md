@@ -46,6 +46,37 @@ The widget defaults to the left bar section. If you installed it without
 omarchy plugin enable io.github.gardnmi.window-shelf --section left
 ```
 
+### Quick Start
+
+The plugin works immediately with the mouse: click the minimize glyph to send
+the active window to the shelf, then click its chip to restore it.
+
+For keyboard control, first confirm `SUPER + M` is not already assigned:
+
+```bash
+omarchy menu keybindings --print
+```
+
+Then add this optional binding to `~/.config/hypr/bindings.lua`:
+
+```lua
+o.bind("SUPER + M", "Minimize window", hl.dsp.window.move({
+  workspace = "special:omarchy-minimized",
+  follow = false,
+}))
+```
+
+Apply and validate the change:
+
+```bash
+hyprctl reload
+hyprctl configerrors
+```
+
+If `SUPER + M` is already assigned, choose another unused key instead of
+silently replacing its existing action. Installing Window Shelf never modifies
+Hyprland bindings automatically.
+
 ## Use
 
 | Input | Action |
@@ -70,25 +101,6 @@ press `SUPER + M` while the Peek window is active to return it to the shelf.
 Switching normal workspaces also dismisses Peek. Left-click the chip while Peek
 is open to restore it permanently. Tiled windows return to tiled state;
 previously floating windows recover their prior size and position.
-
-### Optional Keyboard Shortcut
-
-The plugin does not modify Hyprland configuration. To add `SUPER + M`, place
-this in `~/.config/hypr/bindings.lua`:
-
-```lua
-o.bind("SUPER + M", "Minimize window", hl.dsp.window.move({
-  workspace = "special:omarchy-minimized",
-  follow = false,
-}))
-```
-
-Reload and validate Hyprland after editing:
-
-```bash
-hyprctl reload
-hyprctl configerrors
-```
 
 ### Configuration
 

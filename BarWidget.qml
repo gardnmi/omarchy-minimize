@@ -410,7 +410,7 @@ BarWidget {
       fixedHeight: root.barSize
       dimmed: !root.canMinimize
       interactive: root.canMinimize
-      tooltipText: root.canMinimize ? "Minimize active window (Super+M)" : "No active window to minimize"
+      tooltipText: root.canMinimize ? "Minimize active window" : "No active window to minimize"
       onPressed: function(button) {
         if (button === Qt.LeftButton) root.minimizeActive()
       }
