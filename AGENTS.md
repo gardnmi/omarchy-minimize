@@ -50,6 +50,8 @@ after publication.
 - Omarchy hides special workspaces during normal workspace changes. That path
   must return the Peek client to the shelf without toggling the already-hidden
   workspace back open.
+- Before the final Peek cleanup toggle, inspect `hyprctl -j monitors`; toggle
+  only when `special:omarchy-window-peek` is still visible on a monitor.
 - Do not modify Hyprland or Omarchy user configuration from plugin code. The
   optional `SUPER + M` binding belongs in documentation and user config.
 - Removing the plugin can leave applications parked. Keep the recovery command
