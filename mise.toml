@@ -1,0 +1,7 @@
+[tasks.restart]
+description = "Deploy the local plugin and restart Omarchy shell"
+run = "bash deploy-local.sh"
+
+[tasks.test]
+description = "Validate the Window Shelf plugin"
+run = "omarchy plugin validate . && qmllint -I /usr/share/omarchy/shell BarWidget.qml && bash -n deploy-local.sh && git diff --check"
