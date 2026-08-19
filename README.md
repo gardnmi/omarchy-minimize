@@ -6,7 +6,7 @@ currently viewing.
 
 Hyprland does not provide conventional desktop minimization. Omarchy Minimize
 implements the behavior by parking windows on the private
-`special:omarchy-minimized` workspace and using Hyprland's window addresses to
+`special:minimized` workspace and using Hyprland's window addresses to
 restore the correct client.
 
 ![Omarchy Minimize centered interactive Peek](assets/interactive-peek.png)
@@ -49,7 +49,8 @@ omarchy plugin enable io.github.gardnmi.window-shelf --section left
 ### Quick Start
 
 The plugin works immediately with the mouse: click the minimize glyph to send
-the active window to the shelf, then click its chip to restore it.
+the active window to the shelf. Click the shelf glyph to open live thumbnails
+of parked windows, then click a thumbnail to restore that window.
 
 For keyboard control, first confirm `SUPER + M` is not already assigned:
 
@@ -61,7 +62,7 @@ Then add this optional binding to `~/.config/hypr/bindings.lua`:
 
 ```lua
 o.bind("SUPER + M", "Minimize window", hl.dsp.window.move({
-  workspace = "special:omarchy-minimized",
+  workspace = "special:minimized",
   follow = false,
 }))
 ```
@@ -82,6 +83,8 @@ modifies Hyprland bindings automatically.
 | Input | Action |
 | --- | --- |
 | Left click the minimize glyph | Minimize the active window |
+| Left click the shelf glyph | Open or close live thumbnails of minimized windows |
+| Left click a thumbnail | Restore that window on the current workspace |
 | Left click a title chip | Restore that window on the current workspace |
 | Hover a title chip | Show a live preview and the complete window title |
 | Right-click a title chip | Open or close a centered, interactive Peek |
@@ -104,7 +107,8 @@ previously floating windows recover their prior size and position.
 
 ### Configuration
 
-Title chips default to 18 characters. Set `maxTitleLength` on the bar entry to
+Set `showWindowChips` to `false` to show only the shelf glyph and its thumbnail
+chooser. Title chips default to 18 characters. Set `maxTitleLength` on the bar entry to
 change the limit. `maxChipWidth` controls the rendered chip width and
 `previewDelay` controls the hover delay in milliseconds. `peekWidth` and
 `peekHeight` control the centered interactive window size:
@@ -112,6 +116,7 @@ change the limit. `maxChipWidth` controls the rendered chip width and
 ```json
 {
   "id": "io.github.gardnmi.window-shelf",
+  "showWindowChips": false,
   "maxTitleLength": 24,
   "maxChipWidth": 220,
   "previewDelay": 350,
@@ -142,7 +147,7 @@ special workspace. If the plugin is unavailable while windows remain parked,
 reveal the shelf with:
 
 ```bash
-hyprctl dispatch 'hl.dsp.workspace.toggle_special("omarchy-minimized")'
+hyprctl dispatch 'hl.dsp.workspace.toggle_special("minimized")'
 ```
 
 Move or close those windows normally before hiding the special workspace again.
@@ -181,7 +186,7 @@ omarchy-shell shell rescanPlugins
 Show the private special workspace:
 
 ```bash
-hyprctl dispatch 'hl.dsp.workspace.toggle_special("omarchy-minimized")'
+hyprctl dispatch 'hl.dsp.workspace.toggle_special("minimized")'
 ```
 
 If the window appears there, move it to a normal workspace or restore it after
