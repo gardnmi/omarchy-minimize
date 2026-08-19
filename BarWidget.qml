@@ -12,13 +12,14 @@ BarWidget {
 
   moduleName: "io.github.gardnmi.window-shelf"
 
-  readonly property string shelfWorkspace: "special:omarchy-minimized"
+  readonly property string shelfWorkspace: "special:minimized"
   readonly property string peekWorkspace: "special:omarchy-window-peek"
   readonly property int maxTitleLength: Math.max(4, Number(setting("maxTitleLength", 18)))
   readonly property int maxChipWidth: Math.max(Style.space(80), Number(setting("maxChipWidth", Style.space(180))))
   readonly property int previewDelay: Math.max(0, Number(setting("previewDelay", 350)))
   readonly property int peekWidth: Math.max(Style.space(320), Number(setting("peekWidth", 960)))
   readonly property int peekHeight: Math.max(Style.space(240), Number(setting("peekHeight", 640)))
+  readonly property bool showWindowChips: setting("showWindowChips", true) === true
   readonly property var minimizedWindows: Hyprland.toplevels.values.filter(function(toplevel) {
     return root.isManaged(toplevel)
   })
@@ -28,6 +29,7 @@ BarWidget {
   property Item pendingPreviewAnchor: null
   property var previewToplevel: null
   property Item previewAnchor: null
+  property bool shelfChooserOpen: false
   property var peekToplevel: null
   property var pendingPeekToplevel: null
   property string peekOriginWorkspace: ""
@@ -120,6 +122,7 @@ BarWidget {
     var destination = workspace && String(workspace.name).indexOf("special:") !== 0
       ? workspace.name : peekOriginWorkspace
     if (!destination) return
+    shelfChooserOpen = false
     if (peekToplevel === toplevel || isPeeked(toplevel)) {
       if (peekTransitionRunning) return
       peekVisible = false
@@ -375,6 +378,7 @@ BarWidget {
   }
 
   onMinimizedWindowsChanged: {
+    if (minimizedWindows.length === 0) shelfChooserOpen = false
     if (previewToplevel && !isManaged(previewToplevel)) cancelPreview(previewToplevel)
     if (peekToplevel && !peekTransitionRunning && peekVisible
         && (!isManaged(peekToplevel) || !isPeeked(peekToplevel))) {
@@ -430,7 +434,8 @@ BarWidget {
   GridLayout {
     id: layout
 
-    columns: root.vertical ? 1 : root.minimizedWindows.length + 1
+    columns: root.vertical ? 1 : 1 + (root.minimizedWindows.length > 0 ? 1 : 0)
+      + (root.showWindowChips ? root.minimizedWindows.length : 0)
     columnSpacing: root.vertical ? 0 : Style.space(1)
     rowSpacing: root.vertical ? Style.space(1) : 0
 
@@ -493,8 +498,52 @@ BarWidget {
       }
     }
 
+    WidgetButton {
+      id: shelfButton
+
+      visible: root.minimizedWindows.length > 0
+      bar: root.bar
+      text: ""
+      keepSpace: true
+      hasVisualContent: true
+      labelVisible: false
+      fixedWidth: root.barSize
+      fixedHeight: root.barSize
+      tooltipText: root.shelfChooserOpen ? "Hide minimized windows" : "Show minimized windows"
+      onPressed: function(button) {
+        if (button === Qt.LeftButton) root.shelfChooserOpen = !root.shelfChooserOpen
+      }
+
+      Item {
+        width: Style.space(15)
+        height: Style.space(13)
+        anchors.centerIn: parent
+
+        Repeater {
+          model: 4
+
+          Rectangle {
+            required property int index
+            width: Style.space(6)
+            height: Style.space(5)
+            x: (index % 2) * Style.space(9)
+            y: Math.floor(index / 2) * Style.space(8)
+            color: "transparent"
+            border.width: Math.max(1, Style.spaceReal(1))
+            border.color: shelfButton.tooltipHovered || root.shelfChooserOpen ? Color.accent
+              : (root.bar ? root.bar.barForeground : Color.foreground)
+            radius: Style.space(1)
+
+            Behavior on border.color {
+              ColorAnimation { duration: 120 }
+            }
+          }
+        }
+      }
+    }
+
     Repeater {
-      model: root.minimizedWindows
+      model: root.showWindowChips ? root.minimizedWindows : []
 
       WidgetButton {
         id: chip
@@ -634,6 +683,112 @@ BarWidget {
         font.pixelSize: Style.font.bodySmall
         elide: Text.ElideRight
         horizontalAlignment: Text.AlignHCenter
+      }
+    }
+  }
+
+  PopupCard {
+    id: shelfChooser
+
+    anchorItem: shelfButton
+    bar: root.bar
+    owner: root
+    open: root.shelfChooserOpen && root.minimizedWindows.length > 0
+    contentWidth: shelfChooser.fittedContentWidth(root.vertical ? Style.space(232) : Style.space(472))
+    contentHeight: shelfChooser.fittedContentHeight(chooserColumn.implicitHeight)
+    padding: Style.space(8)
+
+    Column {
+      id: chooserColumn
+      spacing: Style.space(8)
+
+      Text {
+        text: "Minimized windows"
+        color: root.bar ? root.bar.barForeground : Color.foreground
+        font.family: root.bar ? root.bar.fontFamily : Style.font.family
+        font.pixelSize: Style.font.body
+      }
+
+      GridLayout {
+        columns: root.vertical ? 1 : 2
+        columnSpacing: Style.space(8)
+        rowSpacing: Style.space(8)
+
+        Repeater {
+          model: root.minimizedWindows
+
+          WidgetButton {
+            required property var modelData
+
+            bar: root.bar
+            text: ""
+            keepSpace: true
+            hasVisualContent: true
+            labelVisible: false
+            fixedWidth: Style.space(224)
+            fixedHeight: Style.space(160)
+            tooltipText: String(modelData.title || "Window") + " - click to restore"
+            onPressed: function(button) {
+              if (button === Qt.LeftButton) root.restore(modelData)
+            }
+
+            Rectangle {
+              anchors.fill: parent
+              color: Qt.rgba(Color.popups.background.r, Color.popups.background.g,
+                Color.popups.background.b, 0.72)
+              border.width: Math.max(1, Style.spaceReal(1))
+              border.color: parent.tooltipHovered ? Color.accent
+                : Qt.rgba(root.bar ? root.bar.barForeground.r : Color.foreground.r,
+                  root.bar ? root.bar.barForeground.g : Color.foreground.g,
+                  root.bar ? root.bar.barForeground.b : Color.foreground.b, 0.28)
+              radius: Style.cornerRadius
+              clip: true
+
+              Item {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: chooserTitle.top
+                anchors.margins: Style.space(6)
+                anchors.bottomMargin: Style.space(4)
+                clip: true
+
+                Image {
+                  width: Style.space(40)
+                  height: width
+                  anchors.centerIn: parent
+                  source: root.windowIcon(modelData)
+                  sourceSize.width: width * Screen.devicePixelRatio
+                  sourceSize.height: height * Screen.devicePixelRatio
+                  fillMode: Image.PreserveAspectFit
+                  opacity: chooserPreview.hasContent ? 0 : 0.5
+                }
+
+                ScreencopyView {
+                  id: chooserPreview
+                  anchors.fill: parent
+                  captureSource: modelData.wayland
+                  live: shelfChooser.open
+                  paintCursor: false
+                }
+              }
+
+              Text {
+                id: chooserTitle
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                anchors.margins: Style.space(6)
+                text: String(modelData.title || "Window")
+                color: root.bar ? root.bar.barForeground : Color.foreground
+                font.family: root.bar ? root.bar.fontFamily : Style.font.family
+                font.pixelSize: Style.font.bodySmall
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+              }
+            }
+          }
+        }
       }
     }
   }
