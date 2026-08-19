@@ -206,8 +206,11 @@ BarWidget {
   }
 
   function finishPeekVisibilityCheck(kind, exitCode, output) {
-    if (exitCode === 0 && peekWorkspaceIsVisible(output)) runPeekToggle(kind + "-toggle")
-    else finalizePeek()
+    if (exitCode === 0 && peekWorkspaceIsVisible(output)) {
+      Qt.callLater(function() { root.runPeekToggle(kind + "-toggle") })
+    } else {
+      finalizePeek()
+    }
   }
 
   function finalizePeek() {

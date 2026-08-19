@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "io.github.gardnmi.window-shelf",
   "name": "Minimize",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "author": "Mike Gardner",
   "license": "MIT",
   "description": "Minimize Hyprland windows into Omarchy bar chips with icons, live previews, and interactive Peek.",
