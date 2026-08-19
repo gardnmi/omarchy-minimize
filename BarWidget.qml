@@ -316,6 +316,7 @@ BarWidget {
   }
 
   function handleFocusedWorkspaceChanged() {
+    shelfChooserOpen = false
     if (!peekToplevel || !peekVisible || peekTransitionRunning) return
     var workspace = Hyprland.focusedWorkspace
     if (workspace && workspace.name !== peekWorkspace) closePeek(peekToplevel)
